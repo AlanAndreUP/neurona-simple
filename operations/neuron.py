@@ -15,24 +15,24 @@ def open_csv(csv_path, tolerance, eta, iterations):
         w = initialize_w(matrix)
         w_by_iterations.append(w)
 
-        for i in range(int(iterations)):
+        for _ in range(int(iterations)):
             u = get_u(w, matrix)
             yc = activation_function(u)
             e = obtain_error(yd, yc)
-            delta_w = calculate_delta_w(int(eta), e, matrix)
+            delta_w = calculate_delta_w(eta, e, matrix)
             norm_e = obtain_norm_e(e)
             norm_e_by_iterations.append(norm_e)
             w = update_w(w, delta_w)
             w_by_iterations.append(w)
-            if tolerance:
-                if norm_e <= float(tolerance):
-                    break
+            if tolerance and norm_e <= float(tolerance):
+                break
 
         return w_by_iterations, norm_e_by_iterations
 
 
 def initialize_w(matrix):
-    return np.random.random((1, matrix.shape[1] - 1))
+    rng = np.random.default_rng()
+    return rng.random((1, matrix.shape[1] - 1))
 
 
 def get_u(w, matrix):
