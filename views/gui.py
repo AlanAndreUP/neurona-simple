@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, PhotoImage, Label
 from operations.neuron import open_csv
 
+
 class LearningModelGUI:
     def __init__(self, root):
         self.root = root
@@ -30,15 +31,21 @@ class LearningModelGUI:
         self.add_start_button(frame)
         self.add_results_text(frame)
         self.add_graph_labels(frame)
-        self.add_weight_table(frame) 
+        self.add_weight_table(frame)
 
     def add_csv_input(self, frame):
-        ttk.Label(frame, text="Ruta del archivo CSV:").grid(row=0, column=0, sticky=tk.W)
+        ttk.Label(frame, text="Ruta del archivo CSV:").grid(
+            row=0, column=0, sticky=tk.W
+        )
         ttk.Entry(frame, textvariable=self.csv_path_var, width=50).grid(row=0, column=1)
-        ttk.Button(frame, text="Cargar CSV", command=self.load_csv).grid(row=0, column=2)
+        ttk.Button(frame, text="Cargar CSV", command=self.load_csv).grid(
+            row=0, column=2
+        )
 
     def add_params_input(self, frame):
-        ttk.Label(frame, text="Tasa de aprendizaje (ETA):").grid(row=1, column=0, sticky=tk.W)
+        ttk.Label(frame, text="Tasa de aprendizaje (ETA):").grid(
+            row=1, column=0, sticky=tk.W
+        )
         ttk.Entry(frame, textvariable=self.eta_var).grid(row=1, column=1)
         ttk.Label(frame, text="Cantidad de épocas:").grid(row=2, column=0, sticky=tk.W)
         ttk.Entry(frame, textvariable=self.epochs_var).grid(row=2, column=1)
@@ -46,90 +53,150 @@ class LearningModelGUI:
         ttk.Entry(frame, textvariable=self.tolerance_var).grid(row=3, column=1)
 
     def add_start_button(self, frame):
-        ttk.Button(frame, text="Iniciar", command=self.start_process).grid(row=4, column=0, columnspan=3, pady=10)
+        ttk.Button(frame, text="Iniciar", command=self.start_process).grid(
+            row=4, column=0, columnspan=3, pady=10
+        )
 
     def add_results_text(self, frame):
         ttk.Label(frame, text="Resultados:").grid(row=5, column=0, sticky=tk.W, pady=5)
         self.results_text = tk.Text(frame, height=10, width=70)
         self.results_text.grid(row=6, column=0, columnspan=3)
-   
+
     def add_graph_labels(self, frame):
-      self.img_label1 = Label(frame)
-      self.img_label1.grid(row=7, column=0, padx=10, pady=10, sticky=tk.NSEW)
-      self.img_label2 = Label(frame)
-      self.img_label2.grid(row=7, column=1, padx=10, pady=10, sticky=tk.NSEW)
-      self.img_label3 = Label(frame)
-      self.img_label3.grid(row=7, column=2, padx=10, pady=10, sticky=tk.NSEW)
+        self.img_label1 = Label(frame)
+        self.img_label1.grid(row=7, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        self.img_label2 = Label(frame)
+        self.img_label2.grid(row=7, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        self.img_label3 = Label(frame)
+        self.img_label3.grid(row=7, column=2, padx=10, pady=10, sticky=tk.NSEW)
 
     def add_weight_table(self, frame):
         self.table_frame = ttk.Frame(frame)
         self.table_frame.grid(row=8, column=0, columnspan=3, pady=10)
 
-        self.table = ttk.Treeview(self.table_frame, columns=("Iteración", "Peso 1"), show="headings")
+        self.table = ttk.Treeview(
+            self.table_frame, columns=("Iteración", "Peso 1"), show="headings"
+        )
         self.table.heading("Iteración", text="Iteración")
         self.table.heading("Peso 1", text="Peso 1")
-      
+
         self.table.grid(row=0, column=0, sticky="nsew")
 
     def load_csv(self):
-        filepath = filedialog.askopenfilename(title="Seleccionar archivo CSV", filetypes=[("Archivos CSV", "*.csv")])
+        filepath = filedialog.askopenfilename(
+            title="Seleccionar archivo CSV", filetypes=[("Archivos CSV", "*.csv")]
+        )
         if filepath:
             self.csv_path_var.set(filepath)
 
     def plot_error_evolution(self, e):
         fig, ax = plt.subplots(figsize=(5, 4))
-        ax.plot(e, marker='o', linestyle='-', label='Error', color='green')
-        ax.set_xlabel('Épocas'); ax.set_ylabel('|E|'); ax.set_title('Evolución de la norma del error'); ax.legend()
-        filename = os.path.join(self.output_folder, 'norm_e_evolution.png')
-        fig.savefig(filename); plt.close(fig)
-        self.img_label1.image = PhotoImage(file=filename); self.img_label1.config(image=self.img_label1.image)
+        ax.plot(e, marker="o", linestyle="-", label="Error", color="green")
+        ax.set_xlabel("Épocas")
+        ax.set_ylabel("|E|")
+        ax.set_title("Evolución de la norma del error")
+        ax.legend()
+        filename = os.path.join(self.output_folder, "norm_e_evolution.png")
+        fig.savefig(filename)
+        plt.close(fig)
+        self.img_label1.image = PhotoImage(file=filename)
+        self.img_label1.config(image=self.img_label1.image)
 
     def plot_weight_evolution(self, w):
         w = np.squeeze(np.array(w))
         fig2, ax2 = plt.subplots(figsize=(5, 4))
-        ax2.spines['left'].set_position('zero'); ax2.spines['left'].set_color('gray')
-        ax2.spines['bottom'].set_position('zero'); ax2.spines['bottom'].set_color('gray')
-        marks = ['s', 'o', '^']
-        for i in range(w.shape[1]): ax2.plot(range(w.shape[0]), w[:, i], label=f'Peso {i}', marker=random.choice(marks), linestyle='-')
-        ax2.set_xlim((0 - 1), (len(w) + 1)); ax2.set_xlabel('Épocas'); ax2.set_ylabel('Pesos (w)'); ax2.set_title('Evolución de los pesos'); ax2.legend()
-        filename2 = os.path.join(self.output_folder, 'weight_evolution.png')
-        fig2.savefig(filename2); plt.close(fig2)
-        self.img_label2.image = PhotoImage(file=filename2); self.img_label2.config(image=self.img_label2.image)
-    def plot_yd_vs_yc(self, yd, yc_by_iterations):
-       fig, ax = plt.subplots(figsize=(5, 4))
-       yc_final = yc_by_iterations[-1]
-       ax.plot(yd, label='Yd (Deseado)', marker='o', linestyle='-', color='blue')
-       ax.plot(yc_final, label='YC (Calculado)', marker='x', linestyle='--', color='red')
-       ax.set_xlabel('Muestras')
-       ax.set_ylabel('Valores')
-       ax.set_title('Comparación entre Yd y YC')
-       ax.legend()
-       filename = os.path.join(self.output_folder, 'yd_vs_yc.png')
-       fig.savefig(filename)
-       plt.close(fig)
-       self.img_label3.image = PhotoImage(file=filename)
-       self.img_label3.config(image=self.img_label3.image)
+        ax2.spines["left"].set_position("zero")
+        ax2.spines["left"].set_color("gray")
+        ax2.spines["bottom"].set_position("zero")
+        ax2.spines["bottom"].set_color("gray")
+        marks = ["s", "o", "^"]
+        for i in range(w.shape[1]):
+            ax2.plot(
+                range(w.shape[0]),
+                w[:, i],
+                label=f"Peso {i}",
+                marker=random.choice(marks),
+                linestyle="-",
+            )
+        ax2.set_xlim((0 - 1), (len(w) + 1))
+        ax2.set_xlabel("Épocas")
+        ax2.set_ylabel("Pesos (w)")
+        ax2.set_title("Evolución de los pesos")
+        ax2.legend()
+        filename2 = os.path.join(self.output_folder, "weight_evolution.png")
+        fig2.savefig(filename2)
+        plt.close(fig2)
+        self.img_label2.image = PhotoImage(file=filename2)
+        self.img_label2.config(image=self.img_label2.image)
 
+    def plot_error_evolution_yd(self, yd, yc_by_iterations):
+        fig, ax = plt.subplots(figsize=(5, 4))
+
+        if not isinstance(yc_by_iterations[-1], np.ndarray):
+            print(
+                "Error: yc_by_iterations[-1] no es un array de NumPy:",
+                type(yc_by_iterations[-1]),
+            )
+            raise TypeError("yc_by_iterations debe ser un array de NumPy")
+
+        yc_final = np.array(yc_by_iterations[-1], dtype=float).flatten()
+        yd_flat = yd.flatten()
+        error = np.abs(yd_flat - yc_final)
+        ax.plot(
+            error, label="Error |Yd - YC|", marker="o", linestyle="-", color="purple"
+        )
+        ax.set_xlabel("Muestras")
+        ax.set_ylabel("Error Absoluto")
+        ax.set_title("Evolución del Error")
+        ax.legend()
+        filename3 = os.path.join(self.output_folder, "error_evolution.png")
+        fig.savefig(filename3)
+        plt.close(fig)
+        self.img_label3.image = PhotoImage(file=filename3)
+        self.img_label3.config(image=self.img_label3.image)
 
     def start_process(self):
-        csv_path = self.csv_path_var.get(); eta = float(self.eta_var.get()); epochs = int(self.epochs_var.get()); tolerance = float(self.tolerance_var.get())
-        if not csv_path: messagebox.showwarning("Advertencia", "Por favor selecciona un archivo CSV."); return
+        csv_path = self.csv_path_var.get()
+        eta = float(self.eta_var.get())
+        epochs = int(self.epochs_var.get())
+        tolerance = float(self.tolerance_var.get())
+        if not csv_path:
+            messagebox.showwarning(
+                "Advertencia", "Por favor selecciona un archivo CSV."
+            )
+            return
         try:
-            w_by_iterations, norm_e_by_iterations, yd, yc_by_iterations = open_csv(csv_path, tolerance, eta, epochs)
+            w_by_iterations, norm_e_by_iterations, yd, yc_by_iterations = open_csv(
+                csv_path, tolerance, eta, epochs
+            )
             if w_by_iterations:
-                self.display_results(w_by_iterations[0], w_by_iterations[-1], eta, len(w_by_iterations), tolerance, w_by_iterations)
+                self.display_results(
+                    w_by_iterations[0],
+                    w_by_iterations[-1],
+                    eta,
+                    len(w_by_iterations),
+                    tolerance,
+                    w_by_iterations,
+                )
                 self.plot_error_evolution(norm_e_by_iterations)
                 self.plot_weight_evolution(w_by_iterations)
-                self.plot_yd_vs_yc(yd,yc_by_iterations)
-        except Exception as e: messagebox.showerror("Error", f"Error al iniciar el proceso: {e}")
+                self.plot_error_evolution_yd(yd, yc_by_iterations)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al iniciar el proceso: {e}")
 
-    def display_results(self, initial_weights, final_weights, eta, epochs, tolerance, w_by_iterations):
+    def display_results(
+        self, initial_weights, final_weights, eta, epochs, tolerance, w_by_iterations
+    ):
         self.results_text.delete(1.0, tk.END)
-        self.results_text.insert(tk.END, f"Pesos iniciales: {initial_weights}\nPesos finales: {final_weights}\nETA: {eta}\nÉpocas: {epochs}\nTolerancia: {tolerance}\n------------------------------------------\n")
+        self.results_text.insert(
+            tk.END,
+            f"Pesos iniciales: {initial_weights}\nPesos finales: {final_weights}\nETA: {eta}\nÉpocas: {epochs}\nTolerancia: {tolerance}\n------------------------------------------\n",
+        )
         for row in self.table.get_children():
             self.table.delete(row)
         for i, weights in enumerate(w_by_iterations):
             self.table.insert("", "end", values=(i, *weights))
+
 
 def create_gui():
     root = tk.Tk()
