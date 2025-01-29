@@ -54,10 +54,12 @@ class LearningModelGUI:
         self.results_text.grid(row=6, column=0, columnspan=3)
    
     def add_graph_labels(self, frame):
-        self.img_label1 = Label(frame)
-        self.img_label1.grid(row=7, column=0, padx=10, pady=10, sticky=tk.NSEW)
-        self.img_label2 = Label(frame)
-        self.img_label2.grid(row=7, column=1, padx=10, pady=10, sticky=tk.NSEW)
+      self.img_label1 = Label(frame)
+      self.img_label1.grid(row=7, column=0, padx=10, pady=10, sticky=tk.NSEW)
+      self.img_label2 = Label(frame)
+      self.img_label2.grid(row=7, column=1, padx=10, pady=10, sticky=tk.NSEW)
+      self.img_label3 = Label(frame)
+      self.img_label3.grid(row=7, column=2, padx=10, pady=10, sticky=tk.NSEW)
 
     def add_weight_table(self, frame):
         self.table_frame = ttk.Frame(frame)
@@ -93,16 +95,32 @@ class LearningModelGUI:
         filename2 = os.path.join(self.output_folder, 'weight_evolution.png')
         fig2.savefig(filename2); plt.close(fig2)
         self.img_label2.image = PhotoImage(file=filename2); self.img_label2.config(image=self.img_label2.image)
+    def plot_yd_vs_yc(self, yd, yc_by_iterations):
+       fig, ax = plt.subplots(figsize=(5, 4))
+       yc_final = yc_by_iterations[-1]
+       ax.plot(yd, label='Yd (Deseado)', marker='o', linestyle='-', color='blue')
+       ax.plot(yc_final, label='YC (Calculado)', marker='x', linestyle='--', color='red')
+       ax.set_xlabel('Muestras')
+       ax.set_ylabel('Valores')
+       ax.set_title('Comparación entre Yd y YC')
+       ax.legend()
+       filename = os.path.join(self.output_folder, 'yd_vs_yc.png')
+       fig.savefig(filename)
+       plt.close(fig)
+       self.img_label3.image = PhotoImage(file=filename)
+       self.img_label3.config(image=self.img_label3.image)
+
 
     def start_process(self):
         csv_path = self.csv_path_var.get(); eta = float(self.eta_var.get()); epochs = int(self.epochs_var.get()); tolerance = float(self.tolerance_var.get())
         if not csv_path: messagebox.showwarning("Advertencia", "Por favor selecciona un archivo CSV."); return
         try:
-            w_by_iterations, norm_e_by_iterations = open_csv(csv_path, tolerance, eta, epochs)
+            w_by_iterations, norm_e_by_iterations, yd, yc_by_iterations = open_csv(csv_path, tolerance, eta, epochs)
             if w_by_iterations:
                 self.display_results(w_by_iterations[0], w_by_iterations[-1], eta, len(w_by_iterations), tolerance, w_by_iterations)
                 self.plot_error_evolution(norm_e_by_iterations)
                 self.plot_weight_evolution(w_by_iterations)
+                self.plot_yd_vs_yc(yd,yc_by_iterations)
         except Exception as e: messagebox.showerror("Error", f"Error al iniciar el proceso: {e}")
 
     def display_results(self, initial_weights, final_weights, eta, epochs, tolerance, w_by_iterations):
